@@ -24,7 +24,7 @@
 
 ## Description
 
-
+The Bookmark API is a scalable solution designed to manage bookmarks for users. It allows users to save and organize their favorite links efficiently. The API is built with RESTful principles and incorporates thorough end-to-end testing to ensure reliability and functionality.
 
 ## Installation
 
