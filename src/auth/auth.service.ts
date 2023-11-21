@@ -2,8 +2,9 @@ import { Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { AuthDto } from "./dto";
 import * as argon from "argon2"
-import { PrismaClientKnownRequestError, PrismaClientUnknownRequestError } from "@prisma/client/runtime/library";
+import { PrismaClientKnownRequestError} from "@prisma/client/runtime/library";
 import { User } from "@prisma/client";
+import { error } from "console";
 
 @Injectable({})
 export class AuthService {
@@ -25,7 +26,7 @@ export class AuthService {
             return user
         }
         catch(error){
-            if(error instanceof PrismaClientKnownRequestError && error.code ==='P2002'){
+            if(error instanceof PrismaClientKnownRequestError){
                 if(error.code === 'P2002'){
                     console.log('Credentials Taken')
                 }
@@ -34,7 +35,26 @@ export class AuthService {
         }
     }
 
-    signin(){
-        return {msg : 'Lmao'}
+    async signin(dto : AuthDto){
+        //find user by email
+        const user = this.prisma.user.findUnique({
+            where : {
+                email : dto.email
+            }
+        })
+        //throw error if email not found
+        if(!user){
+            throw new error({err : 'User Not found'})
+        }
+        //compare passwords
+        const pwMatch = await argon.verify((await user).hash, dto.password)
+
+        //if password incorrect throw exception
+        if(!pwMatch){
+            throw new error({err : 'Password incorrect'})
+        }
+        //send user back
+        delete (await user).hash
+        return user
     }
 }
